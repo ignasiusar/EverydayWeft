@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Everyday Weft</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            background: #f9f9f9;
+            color: #1d1d1f;
+            overflow-x: hidden;
+            padding-top: 72px; /* Prevent hero from covering navbar */
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030; /* Higher than hero */
+        }
+        .hero {
+            background: linear-gradient(135deg, #f5f5f7 0%, #e9e9eb 100%);
+            padding: 6rem 0 4rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .hero h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            letter-spacing: -1px;
+            color: #1d1d1f;
+        }
+        .hero p.lead {
+            font-size: 1.25rem;
+            color: #6e6e73;
+            max-width: 600px;
+            margin: 1rem auto 0;
+        }
+
+        /* Product Card */
+        .product-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            background: white;
+            height: 100%;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        .product-card img {
+            height: 220px;
+            object-fit: cover;
+            width: 100%;
+        }
+        .card-body {
+            padding: 1.25rem;
+        }
+        .card-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+            height: 2.2rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-text {
+            font-size: 0.875rem;
+            color: #86868b;
+            margin-bottom: 0.5rem;
+        }
+        .price {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: #1d1d1f;
+            margin: 0.5rem 0;
+        }
+        .btn-add {
+            background: #000;
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        .btn-add:hover {
+            background: #333;
+        }
+
+        /* Cart Sidebar */
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 90%;
+            max-width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1050;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+        @media (min-width: 768px) {
+            .cart-sidebar {
+                width: 400px;
+            }
+        }
+        .cart-sidebar.open {
+            right: 0;
+        }
+        .cart-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-body {
+            padding: 1.5rem;
+        }
+        .cart-item {
+            display: flex;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 1rem;
+        }
+        .cart-item-details {
+            flex: 1;
+        }
+        .cart-item-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .cart-item-price {
+            color: #6e6e73;
+            font-size: 0.9rem;
+        }
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .cart-item-actions button {
+            width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
+            padding: 0;
+        }
+        .cart-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #eee;
+        }
+        .btn-checkout {
+            background: #000;
+            border: none;
+            color: white;
+            padding: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Search & Pagination */
+        .search-section {
+            padding: 1rem 0;
+        }
+        .pagination-container {
+            margin-top: 2rem;
+        }
+        .page-link {
+            color: #000;
+        }
+        .page-item.active .page-link {
+            background-color: #000;
+            border-color: #000;
+        }
+
+        footer {
+            margin-top: 3rem;
+            padding: 2rem 0;
+            background: #f5f5f7;
+            color: #86868b;
+            font-size: 0.875rem;
+        }
+
+        /* AOS Custom */
+        [data-aos] {
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        [data-aos].aos-animate {
+            opacity: 1;
+        }
+
+        @media (max-width: 992px) {
+            .hero h1 { font-size: 2rem; }
+            .hero p.lead { font-size: 1.1rem; }
+            body {
+                padding-top: 64px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <div class="container">
+        <a class="navbar-brand" href="#">Everyday Weft</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="/#men">Men</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="/#women">Women</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="/#kids">Kids</a>
+                </li>
+                <li class="nav-item ms-2" id="accountDropdownContainer">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-dark btn-sm dropdown-toggle" id="accountDropdownBtn" data-bs-toggle="dropdown">
+                            Account
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" id="accountDropdownMenu">
+                            <li><a class="dropdown-item" href="#" id="dropdownLogin">Login</a></li>
+                            <li><a class="dropdown-item" href="#" id="dropdownRegister">Register</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item ms-2">
+                    <a class="btn btn-outline-dark btn-sm position-relative" href="#" id="cartLink">
+                        🛒 <span id="cartBadge" class="badge bg-dark ms-1 rounded-pill">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero text-center" data-aos="fade-up">
+    <div class="container">
+        <h1>The Prestige Collection</h1>
+        <p class="lead">Elevate your everyday style with timeless pieces.</p>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="container search-section" data-aos="fade-up" data-aos-delay="100">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search products..." onkeyup="searchProducts()">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Produk -->
+<div class="container">
+    <div class="row" id="product-list"></div>
+    <div class="pagination-container" id="paginationContainer"></div>
+</div>
+
+<!-- Footer -->
+<footer class="text-center" data-aos="fade-up">
+    <small>© 2025 Everyday Weft — Tugas Akhir</small>
+</footer>
+
+<!-- Modal Register -->
+<div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Register</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Create account to be our member to earn points, get free vouchers, and hear our news earlier.</p>
+                <form id="registerFormModal">
+                    <div class="mb-3"><input type="text" class="form-control" id="fullName" placeholder="Your Full Name*" required></div>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" placeholder="Your email" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" placeholder="Password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100">Create New Account</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="#" id="loginLinkFromRegister">Already have account? Login here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Login -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginFormModal">
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="loginEmail" placeholder="Your email" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100">Login</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="#" id="registerLinkFromLogin">Don't have account? Signup here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Detail Modal -->
+<div class="modal fade" id="productDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productDetailTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="closeAllModals()"></button>
+            </div>
+            <div class="modal-body" id="productDetailBody">
+                <!-- Diisi via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Variant Modal -->
+<div class="modal fade" id="variantModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="variantModalTitle">Select Variant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="closeAllModals()"></button>
+            </div>
+            <div class="modal-body" id="variantModalBody">
+                <!-- Diisi via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar Cart -->
+<div id="cartSidebar" class="cart-sidebar">
+    <div class="cart-header">
+        <h5>Your Bag</h5>
+        <button type="button" class="btn-close" onclick="closeCart()"></button>
+    </div>
+    <div class="cart-body">
+        <div id="cartItemsContainer"></div>
+        <div id="cartEmpty" class="text-center p-4" style="display: none;">
+            <h6>Your bag is empty</h6>
+            <p>Discover products or log in to pick up where you left off.</p>
+            <div id="cartEmptyActions">
+                <button class="btn btn-outline-secondary btn-sm me-2" onclick="continueShopping()">Continue Shopping</button>
+                <button class="btn btn-dark btn-sm" onclick="openLoginModal()">Login</button>
+            </div>
+        </div>
+        <div id="cartFooter" class="mt-3" style="display: none;">
+            <div class="d-flex justify-content-between fs-5">
+                <strong>Total</strong>
+                <span id="cartTotal">Rp 0</span>
+            </div>
+            <button class="btn btn-checkout w-100 mt-3" onclick="checkout()">Checkout</button>
+        </div>
+    </div>
+</div>
+<div id="cartOverlay" class="cart-overlay" onclick="closeCart()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1040;"></div>
+
+<!-- AOS Script -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Global state
+    let currentPage = 0;
+    const pageSize = 12;
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({
+            duration: 800,
+            easing: 'ease',
+            once: true
+        });
+
+        // Initialize all event listeners
+        initEventListeners();
+
+        // Check login status and load initial data
+        checkLoginStatusAndInitialize();
+    });
+
+    function initEventListeners() {
+        // Cart button
+        document.getElementById('cartLink')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            openCart();
+        });
+
+        // Cart overlay
+        document.getElementById('cartOverlay')?.addEventListener('click', closeCart);
+
+        // Search
+        document.getElementById('searchInput')?.addEventListener('keyup', searchProducts);
+
+        // Account dropdown actions (using event delegation for dynamic content)
+        document.getElementById('accountDropdownContainer')?.addEventListener('click', function(e) {
+            if (e.target.id === 'dropdownLogin') {
+                e.preventDefault();
+                new bootstrap.Modal(document.getElementById('loginModal')).show();
+            } else if (e.target.id === 'dropdownRegister') {
+                e.preventDefault();
+                new bootstrap.Modal(document.getElementById('registerModal')).show();
+            } else if (e.target.id === 'toLogout') {
+                e.preventDefault();
+                logout();
+            }
+        });
+
+        // Modal links
+        document.getElementById('loginLinkFromRegister')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            bootstrap.Modal.getInstance(document.getElementById('registerModal'))?.hide();
+            new bootstrap.Modal(document.getElementById('loginModal')).show();
+        });
+
+        document.getElementById('registerLinkFromLogin')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            bootstrap.Modal.getInstance(document.getElementById('loginModal'))?.hide();
+            new bootstrap.Modal(document.getElementById('registerModal')).show();
+        });
+    }
+
+    function checkLoginStatusAndInitialize() {
+        const email = localStorage.getItem('email');
+        const userId = localStorage.getItem('userId');
+
+        if (email && userId) {
+            updateNavbarAfterLogin(email);
+        }
+
+        loadProducts();
+        updateCartCount();
+    }
+
+    // === API Helpers ===
+    async function parseResponse(res) {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) return res.json();
+        const txt = await res.text();
+        throw new Error(txt || 'Unexpected response');
+    }
+
+    async function apiFetch(url, options = {}) {
+        options.headers = options.headers || {};
+        const token = localStorage.getItem('accessToken');
+        if (token) options.headers['Authorization'] = 'Bearer ' + token;
+        options.headers['Content-Type'] = 'application/json';
+
+        let res = await fetch(url, options);
+        if (res.status === 401) {
+            const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+            if (r.ok) {
+                const j = await parseResponse(r);
+                localStorage.setItem('accessToken', j.accessToken);
+                options.headers['Authorization'] = 'Bearer ' + j.accessToken;
+                res = await fetch(url, options);
+            }
+        }
+        return res;
+    }
+
+    // === Product Functions ===
+    async function loadProducts(page = 0) {
+        try {
+            const res = await fetch(`/api/products?page=${page}&size=${pageSize}`);
+            const data = await res.json();
+            currentPage = data.number;
+
+            renderProducts(data.content);
+            renderPagination(data.number, data.totalPages);
+        } catch (err) {
+            console.error('Error loading products:', err);
+            document.getElementById('product-list').innerHTML = '<div class="col-12"><div class="alert alert-danger">Failed to load products.</div></div>';
+        }
+    }
+
+    function renderProducts(products) {
+        const container = document.getElementById('product-list');
+        container.innerHTML = '';
+
+        products.forEach(p => {
+            const imgSrc = p.imageUrl && p.imageUrl.trim() ? p.imageUrl.trim() : `https://via.placeholder.com/300x200?text=${encodeURIComponent(p.name)}`;
+            const card = `
+                <div class="col-md-4 col-lg-3 mb-4 product-item" data-name="${p.name}" data-category="${p.category || ''}" data-aos="fade-up" data-aos-delay="100">
+                    <div class="product-card">
+                        <img src="${imgSrc}" class="card-img-top" alt="${p.name}">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">${p.name}</h6>
+                            <p class="card-text">${p.category || ''}</p>
+                            <div class="mt-auto">
+                                <p class="price">Rp ${Number(p.price || 0).toLocaleString('id-ID')}</p>
+                                <button class="btn btn-add" onclick="showProductDetail(${p.id})">View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', card);
+        });
+
+        AOS.refresh();
+    }
+
+    function renderPagination(currentPage, totalPages) {
+        const container = document.getElementById('paginationContainer');
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = `<nav><ul class="pagination justify-content-center">`;
+        for (let i = 0; i < totalPages; i++) {
+            const active = i === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" onclick="loadProducts(${i})">${i + 1}</button></li>`;
+        }
+        html += `</ul></nav>`;
+        container.innerHTML = html;
+    }
+
+    function searchProducts() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const items = document.querySelectorAll('.product-item');
+        items.forEach(item => {
+            const name = item.dataset.name.toLowerCase();
+            const category = item.dataset.category.toLowerCase();
+            if (name.includes(query) || category.includes(query)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // === Product Detail ===
+    window.showProductDetail = function(productId) {
+        fetch(`/api/products/${productId}`)
+            .then(res => res.json())
+            .then(product => {
+                const imgSrc = product.imageUrl || 'https://via.placeholder.com/400';
+                const body = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="${imgSrc}" class="img-fluid rounded" alt="${product.name}" data-aos="zoom-in">
+                        </div>
+                        <div class="col-md-6" data-aos="fade-left">
+                            <h2>${product.name}</h2>
+                            <p class="text-muted">${product.category || ''}</p>
+                            <p class="h3">Rp ${Number(product.price || 0).toLocaleString('id-ID')}</p>
+                            <p>${product.description || 'No description available.'}</p>
+                            <p><strong>Sold:</strong> ${product.soldCount || 0} units</p>
+                            <button class="btn btn-dark mt-3 w-100" onclick="showAddToCartModal(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price})">Add to Bag</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('productDetailTitle').textContent = product.name;
+                document.getElementById('productDetailBody').innerHTML = body;
+                new bootstrap.Modal(document.getElementById('productDetailModal')).show();
+                setTimeout(() => AOS.refresh(), 100);
+            })
+            .catch(err => Swal.fire('Error', 'Failed to load product details.', 'error'));
+    };
+
+    // === Cart Functions ===
+    window.showAddToCartModal = function(productId, productName, productPrice) {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Login Required!',
+                text: 'Please login to add items to your bag.',
+                confirmButtonText: 'Login Now'
+            }).then(() => {
+                new bootstrap.Modal(document.getElementById('loginModal')).show();
+            });
+            return;
+        }
+
+        fetch(`/api/products/${productId}/variants`)
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load variants');
+                return res.json();
+            })
+            .then(variants => {
+                const uniqueColors = [...new Set(variants.map(v => v.color))];
+                const uniqueSizes = [...new Set(variants.map(v => v.size))];
+
+                let colorOptions = '<option value="">Select Color</option>';
+                uniqueColors.forEach(color => {
+                    const variant = variants.find(v => v.color === color);
+                    const isAvailable = variant && variant.stock > 0;
+                    const disabled = !isAvailable ? 'disabled' : '';
+                    colorOptions += `<option value="${color}" ${disabled}>${color} ${!isAvailable ? '(Out of Stock)' : ''}</option>`;
+                });
+
+                let sizeOptions = '<option value="">Select Size</option>';
+                uniqueSizes.forEach(size => {
+                    const variant = variants.find(v => v.size === size);
+                    const isAvailable = variant && variant.stock > 0;
+                    const disabled = !isAvailable ? 'disabled' : '';
+                    sizeOptions += `<option value="${size}" ${disabled}>${size} ${!isAvailable ? '(Out of Stock)' : ''}</option>`;
+                });
+
+                const modalBody = `
+                    <p><strong>Price: Rp ${Number(productPrice || 0).toLocaleString('id-ID')}</strong></p>
+                    <div class="mb-3">
+                        <label class="form-label">Color:</label>
+                        <select class="form-select" id="colorSelect">${colorOptions}</select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Size:</label>
+                        <select class="form-select" id="sizeSelect">${sizeOptions}</select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity:</label>
+                        <input type="number" class="form-control" id="quantityInput" value="1" min="1" max="10">
+                    </div>
+                    <button class="btn btn-success w-100" onclick="addToCartFromVariant(${productId})">Add to Bag</button>
+                `;
+                document.getElementById('variantModalTitle').textContent = `Select Variant - ${productName}`;
+                document.getElementById('variantModalBody').innerHTML = modalBody;
+                new bootstrap.Modal(document.getElementById('variantModal')).show();
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Failed to load variants: ' + err.message, 'error');
+            });
+    };
+
+    window.addToCartFromVariant = function(productId) {
+        const color = document.getElementById('colorSelect')?.value;
+        const size = document.getElementById('sizeSelect')?.value;
+        const quantity = parseInt(document.getElementById('quantityInput')?.value || '1');
+
+        if (!color || !size) {
+            Swal.fire('Warning', 'Please select color and size!', 'warning');
+            return;
+        }
+
+        fetch(`/api/products/${productId}/variant?color=${encodeURIComponent(color)}&size=${encodeURIComponent(size)}`)
+            .then(res => {
+                if (!res.ok) throw new Error('Variant not found');
+                return res.json();
+            })
+            .then(variant => {
+                if (variant.stock < quantity) {
+                    Swal.fire('Insufficient Stock!', `Available: ${variant.stock}`, 'error');
+                    return;
+                }
+
+                apiFetch('/api/cart/add', {
+                    method: 'POST',
+                    body: JSON.stringify({ variantId: variant.id, quantity: quantity })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to add to cart');
+                    return res.json();
+                })
+                .then(data => {
+                    closeAllModals();
+                    Swal.fire('Success!', 'Added to your bag.', 'success');
+                    updateCartCount();
+                    // Refresh cart content if cart is open
+                    if (document.getElementById('cartSidebar').classList.contains('open')) {
+                        loadCart();
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Error', 'Failed to add to cart: ' + (err.message || 'Unknown error'), 'error');
+                });
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Failed to get variant: ' + err.message, 'error');
+            });
+    };
+
+    // === Cart Sidebar ===
+    function openCart() {
+        document.getElementById('cartSidebar').classList.add('open');
+        document.getElementById('cartOverlay').style.display = 'block';
+        loadCart();
+    }
+
+    function closeCart() {
+        document.getElementById('cartSidebar').classList.remove('open');
+        document.getElementById('cartOverlay').style.display = 'none';
+    }
+
+    function closeAllModals() {
+        // Close all bootstrap modals
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            if (modalInstance) modalInstance.hide();
+        });
+        // Close cart sidebar
+        closeCart();
+    }
+
+    function loadCart() {
+        const userId = localStorage.getItem('userId');
+        const cartEmpty = document.getElementById('cartEmpty');
+        const cartFooter = document.getElementById('cartFooter');
+        const cartItemsContainer = document.getElementById('cartItemsContainer');
+
+        if (!userId) {
+            // User not logged in
+            cartEmpty.style.display = 'block';
+            cartFooter.style.display = 'none';
+            document.getElementById('cartEmptyActions').innerHTML = `
+                <button class="btn btn-outline-secondary btn-sm me-2" onclick="continueShopping()">Continue Shopping</button>
+                <button class="btn btn-dark btn-sm" onclick="openLoginModal()">Login</button>
+            `;
+            return;
+        }
+
+        apiFetch(`/api/cart/user/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.items || data.items.length === 0) {
+                    // Logged in but empty cart
+                    cartEmpty.style.display = 'block';
+                    cartFooter.style.display = 'none';
+                    document.getElementById('cartEmptyActions').innerHTML = `
+                        <button class="btn btn-outline-secondary btn-sm" onclick="continueShopping()">Continue Shopping</button>
+                    `;
+                    return;
+                }
+
+                // Has items
+                cartEmpty.style.display = 'none';
+                cartFooter.style.display = 'block';
+
+                let html = '';
+                let total = 0;
+                data.items.forEach(item => {
+                    const price = (item.price || 0) * (item.quantity || 1);
+                    total += price;
+                    html += `
+                        <div class="cart-item">
+                            <img src="${item.product?.imageUrl || 'https://via.placeholder.com/60'}" alt="${item.product?.name || ''}">
+                            <div class="cart-item-details">
+                                <div class="cart-item-name">${item.product?.name || ''}</div>
+                                <div class="cart-item-price">Rp ${Number(item.price || 0).toLocaleString('id-ID')} x ${item.quantity}</div>
+                            </div>
+                            <div class="cart-item-actions">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="updateItemQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                                <input type="number" class="form-control cart-item-quantity" value="${item.quantity}" min="1" style="width: 50px;" onchange="updateItemQuantity(${item.id}, this.value)">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="updateItemQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                <button class="btn-close" onclick="removeItem(${item.id})" style="font-size: 1.5rem; width: 24px; height: 24px; padding: 0; margin-left: 8px;"></button>
+                            </div>
+                        </div>
+                    `;
+                });
+                cartItemsContainer.innerHTML = html;
+                document.getElementById('cartTotal').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+            })
+            .catch(() => {
+                cartEmpty.style.display = 'block';
+                cartFooter.style.display = 'none';
+                document.getElementById('cartEmptyActions').innerHTML = `
+                    <button class="btn btn-outline-secondary btn-sm me-2" onclick="continueShopping()">Continue Shopping</button>
+                    <button class="btn btn-dark btn-sm" onclick="openLoginModal()">Login</button>
+                `;
+            });
+    }
+
+    function updateCartCount() {
+        const userId = localStorage.getItem('userId');
+        const badge = document.getElementById('cartBadge');
+        if (!userId) {
+            badge.textContent = '0';
+            return;
+        }
+        apiFetch(`/api/cart/user/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                badge.textContent = data.items ? data.items.length : 0;
+            }).catch(() => badge.textContent = '0');
+    }
+
+    window.updateItemQuantity = function(itemId, quantity) {
+        quantity = Number(quantity);
+        if (quantity <= 0) {
+            removeItem(itemId);
+            return;
+        }
+        apiFetch(`/api/cart/item/${itemId}/quantity`, {
+            method: 'PUT',
+            body: JSON.stringify({ quantity })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to update quantity');
+            loadCart(); // Refresh cart immediately
+        })
+        .catch(err => Swal.fire('Error', 'Failed to update quantity: ' + err.message, 'error'));
+    };
+
+    window.removeItem = function(itemId) {
+        if (!confirm('Remove item from bag?')) return;
+        apiFetch(`/api/cart/item/${itemId}`, { method: 'DELETE' })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to remove item');
+                loadCart(); // Refresh cart immediately
+                Swal.fire('Removed!', 'Item removed from your bag.', 'success');
+            })
+            .catch(err => Swal.fire('Error', 'Failed to remove item: ' + err.message, 'error'));
+    };
+
+    function continueShopping() {
+        closeCart();
+    }
+
+    function openLoginModal() {
+        closeCart();
+        new bootstrap.Modal(document.getElementById('loginModal')).show();
+    }
+
+    function checkout() {
+        Swal.fire('Coming Soon', 'Checkout functionality will be implemented soon.', 'info');
+    }
+
+    // === Auth Functions ===
+    const registerForm = document.getElementById('registerFormModal');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const result = await parseResponse(res);
+                Swal.fire('Success!', 'Registration successful. Please login.', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+                new bootstrap.Modal(document.getElementById('loginModal')).show();
+            } catch (err) {
+                Swal.fire('Registration Failed!', err.message, 'error');
+            }
+        });
+    }
+
+    const loginForm = document.getElementById('loginFormModal');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                    credentials: 'include'
+                });
+                const result = await parseResponse(res);
+
+                localStorage.setItem('accessToken', result.accessToken);
+                localStorage.setItem('userId', result.userId);
+                localStorage.setItem('email', result.email);
+                localStorage.setItem('role', result.role);
+
+                updateNavbarAfterLogin(result.email);
+                bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Welcome!',
+                    text: `Hello, ${result.email.split('@')[0]}!`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                // Update cart immediately after login
+                updateCartCount();
+                if (document.getElementById('cartSidebar').classList.contains('open')) {
+                    loadCart();
+                }
+            } catch (err) {
+                Swal.fire('Login Failed!', err.message, 'error');
+            }
+        });
+    }
+
+    function getDisplayNameFromEmail(email) {
+        return (email || '').split('@')[0] || 'User';
+    }
+
+    function updateNavbarAfterLogin(email) {
+        const display = getDisplayNameFromEmail(email);
+        const role = localStorage.getItem('role');
+        const menu = document.getElementById('accountDropdownMenu');
+
+        let menuHtml = `<li><h6 class="dropdown-header">${display}</h6></li>`;
+        menuHtml += `<li><a class="dropdown-item" href="#">Profile</a></li>`;
+        if (role === 'ADMIN') {
+            menuHtml += `<li><a class="dropdown-item" href="/admin">Admin Panel</a></li>`;
+        }
+        menuHtml += `<li><a class="dropdown-item" href="#" id="toLogout">Logout</a></li>`;
+        menu.innerHTML = menuHtml;
+    }
+
+    function logout() {
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).finally(() => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('email');
+            localStorage.removeItem('role');
+            // Update UI immediately without reload
+            document.getElementById('accountDropdownMenu').innerHTML = `
+                <li><a class="dropdown-item" href="#" id="dropdownLogin">Login</a></li>
+                <li><a class="dropdown-item" href="#" id="dropdownRegister">Register</a></li>
+            `;
+            updateCartCount();
+            if (document.getElementById('cartSidebar').classList.contains('open')) {
+                loadCart(); // Refresh cart to show login prompt
+            }
+            Swal.fire('Logged Out!', 'You have been logged out.', 'success');
+        });
+    }
+
+    // === Global Functions ===
+    window.loadProducts = loadProducts;
+    window.searchProducts = searchProducts;
+</script>
+</body>
+</html>
